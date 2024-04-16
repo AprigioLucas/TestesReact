@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { InputRegister } from './input-create'
 import { api } from '../lib/server'
@@ -9,6 +10,7 @@ export function CreateNewEvent(){
     const [details, setDetails] = useState('')
     const [maximumAttendees, setMaximumAttendees] = useState('')
     const [registerError, setRegisterError] = useState('')
+    const [registerInfo, setRegisterInfo] = useState('')
 
     const handleRegister = () => {
         
@@ -28,6 +30,15 @@ export function CreateNewEvent(){
         .then(function(response){
             console.log(response)
             setRegisterError('')
+            setRegisterInfo('New event successfully create')
+            setTimeout(()=>{
+                setTitle('');
+                setDetails('');
+                setMaximumAttendees('');
+                setRegisterInfo('');
+            }, 3000);
+
+
         })
         .catch(function(error){
             setRegisterError(`Error registering event: ${error.response.data.message}`)
@@ -66,7 +77,7 @@ export function CreateNewEvent(){
                 </button>
                 </div>
                 <div>
-                    <span className='text-center'>{registerError}</span>
+                    <span className='text-center'>{registerError}{registerInfo}</span>
                 </div>
             </div>  
         </div>    
