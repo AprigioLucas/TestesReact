@@ -1,10 +1,10 @@
-
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Search } from 'lucide-react'
 // import { formatRelative } from 'date-fns'
 // import { ptBR } from 'date-fns/locale'
+//import 'dayjs/locale/pt-br'
+// import { attendees } from '../data/attendees'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Search } from 'lucide-react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-//import 'dayjs/locale/pt-br'
 import { IconButton } from './icon-button'
 import { InputRegister } from './input-create'
 import { Table } from './table/table'
@@ -12,7 +12,6 @@ import { TableHeader } from './table/table-header'
 import { TableCell } from './table/table-cell'
 import { TableRow } from './table/table-row'
 import { ChangeEvent, useEffect, useState } from 'react'
-// import { attendees } from '../data/attendees'
 
 import { api } from '../lib/server'
 
@@ -39,7 +38,7 @@ export function AttendeeList(){
     const [page, setPage] = useState(() => {
         const url = new URL(window.location.toString())
         if(url.searchParams.has('page')){
-            return Number(url.searchParams.get('page'))
+            return Number(url.searchParams.get('page')) ?? 1
         }
         return 1
     })
@@ -48,31 +47,37 @@ export function AttendeeList(){
     const [eventId, setEventId] = useState('')
     const [total, setTotal] = useState(0)
     const [totalPages, setTotalPages] = useState(0)
-    
+    const [loading, setLoading] = useState(false);
+
     useEffect(() => {
+        if(eventId){
+            setLoading(true)
             api.get(`/events/${eventId}/attendees`, {
                 params:{
-                    page,
-                    search
+                    pageIndex: page-1,
+                    query: search
                 }
             })
             .then(function(response){
-                return response.data
-            })
-            .then(data => {
-                setAttendees(data.attendees)
-                setTotal(data.total)
-                
+                const data = response.data;
+                setAttendees(data.attendees);
+                setTotal(data.total);
+                setTotalPages(Math.ceil(data.total / 10));
+                setLoading(false);
             })
             .catch(function(error){
                 console.log(`Error showing attendee: ${error.response.data.message}`)
+                setLoading(false)
             })
-            if (total > 0) {
-                setTotalPages(Math.ceil(total / 10));
-            } else {
-                setTotalPages(0);
-            }
-    }, [eventId, page, search, total])
+        }
+        else {
+            setAttendees([]);
+            setTotal(0);
+            setTotalPages(1);
+            setPage(1);
+            setCurrentPage(1);
+        }
+    }, [eventId, page, search])
 
     function setCurrentSearch(search: string){
         const url = new URL(window.location.toString())
@@ -93,15 +98,13 @@ export function AttendeeList(){
         setCurrentPage(1)
     }
     function goToNextPage(){
-        if (page < totalPages) {
-            setCurrentPage(page + 1);
-        }
+        if (page < totalPages)
+        setCurrentPage(page + 1)
     }
     
     function goToPreviousPage(){
-        if (page > 1) {
-            setCurrentPage(page - 1);
-        }
+        if (page > 1)
+            setCurrentPage(page - 1)
     }
     
     function goToFirstPage(){
@@ -133,9 +136,8 @@ export function AttendeeList(){
                         placeholder="Search participant..."
                     />
                 </div>
-            
-            {/* {attendees.length>0?( */}
-            {eventId?( 
+                
+            {eventId ? (
             <Table>
                 <thead>
                     <tr className='border-b border-white/10'>
@@ -150,10 +152,8 @@ export function AttendeeList(){
                     </tr>
                 </thead>
                 <tbody>
-                    {/* slice((page-1)*10, page * 10). */}
                     {attendees
                     .filter(attendee => attendee.name.toLowerCase().includes(search.toLowerCase()))
-                    .slice((page - 1) * 10, page * 10)
                     .map((attendee) => {
                         return(
                             <TableRow key={attendee.id}>
@@ -198,16 +198,16 @@ export function AttendeeList(){
                             <div className='inline-flex items-center gap-8'>
                                 <span>Page {page} of {totalPages}</span>
                                 <div className='flex gap-1.5'>
-                                    <IconButton onClick={goToFirstPage} disabled={page===1}>
+                                    <IconButton onClick={goToFirstPage} disabled={page===1 || loading}>
                                         <ChevronsLeft className='size-4'/>
                                     </IconButton>
-                                    <IconButton onClick={goToPreviousPage} disabled={page===1}>
+                                    <IconButton onClick={goToPreviousPage} disabled={page===1 || loading}>
                                         <ChevronLeft className='size-4'/>
                                     </IconButton>
-                                    <IconButton onClick={goToNextPage} disabled={page===totalPages}>
+                                    <IconButton onClick={goToNextPage} disabled={page===totalPages || loading}>
                                         <ChevronRight className='size-4'/>
                                     </IconButton>
-                                    <IconButton onClick={goToLastPage} disabled={page===totalPages}>
+                                    <IconButton onClick={goToLastPage} disabled={page===totalPages || loading}>
                                         <ChevronsRight className='size-4'/>
                                     </IconButton>
                                 </div>
@@ -215,10 +215,9 @@ export function AttendeeList(){
                         </TableCell>
                     </tr>
                 </tfoot>
-            
             </Table>
-            ):(
-             <p className='text-gray-500'>No attendees found.</p>
+            ) : (
+                <p className="text-gray-500">No attendees found.</p>
             )}
         </div>
     )

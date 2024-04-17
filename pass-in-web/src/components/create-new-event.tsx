@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { InputRegister } from './input-create'
 import { api } from '../lib/server'
@@ -19,9 +18,7 @@ export function CreateNewEvent(){
         if (isNaN(maxAttendeesNumber)) {
             setRegisterError('Maximum attendees must be a valid number.');
             return;
-        }
-
-        
+        }        
         api.post(`/events`,{
             title,
             details,
@@ -30,17 +27,16 @@ export function CreateNewEvent(){
         .then(function(response){
             console.log(response)
             setRegisterError('')
-            setRegisterInfo('New event successfully create')
-            setTimeout(()=>{
-                setTitle('');
-                setDetails('');
-                setMaximumAttendees('');
-                setRegisterInfo('');
-            }, 3000);
-
-
+            setRegisterInfo('New event successfully created')
+            setTimeout(() => {
+                setRegisterInfo('')
+                setTitle('')
+                setDetails('')
+                setMaximumAttendees('')
+            }, 3000)
         })
         .catch(function(error){
+            setRegisterInfo('')
             setRegisterError(`Error registering event: ${error.response.data.message}`)
         })
     }
@@ -73,7 +69,7 @@ export function CreateNewEvent(){
                 <div>
                 <button className='bg-orange-400 border border-white/10 rounded-md p-2 text-sm text-zinc-900 hover:bg-orange-500'
                         onClick={handleRegister}>
-                    Seed
+                    Create
                 </button>
                 </div>
                 <div>

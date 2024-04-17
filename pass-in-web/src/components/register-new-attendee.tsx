@@ -20,14 +20,12 @@ export function RegisterNewAttendee(){
             console.log(response)
             setRegisterError('')
             setRegisterInfo('New participant successfully registered')
-        
             setTimeout(() => {
-                setRegisterInfo('');
-                setEmail('');
-                setEventId('');
-                setName('');    
-            }, 3000);
-
+                setRegisterInfo('')
+                setEventId('')
+                setName('')
+                setEmail('')
+            }, 3000)
         })
         .catch(function(error){
             setRegisterInfo('')
