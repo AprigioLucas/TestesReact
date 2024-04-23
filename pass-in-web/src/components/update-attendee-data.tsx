@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { InputRegister } from "./input-create";
 import { api } from "../lib/server";
+import { Table } from "./table/table";
+import { TableCell } from "./table/table-cell";
+import { TableRow } from "./table/table-row";
+import { TableHeader } from "./table/table-header";
+import dayjs from "dayjs";
 
 interface Attendee{
     id: string
@@ -12,29 +17,31 @@ interface Attendee{
 }
 
 export function UpdateAttendeeData(){
-    const [eventId, setEventId] = useState('');
+    const [eventId, setEventId] = useState('')
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [createdAt, setCreatedAt] = useState('')
     const [checkedInAt, setCheckedInAt] = useState('')
-    const [attendeeId, setAttendeeId] = useState('');
-    const [attendeeData, setAttendeeData] = useState<Attendee | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [attendeeId, setAttendeeId] = useState('')
+    const [attendeeData, setAttendeeData] = useState<Attendee | null>(null)
+    const [loadingUpdate, setLoadingUpdate] = useState(false)
+    const [loadingSearch, setLoadingSearch] = useState(false)
     const [registerInfo, setRegisterInfo] = useState('')
+    const [showTable, setShowTable] = useState(false)
 
     const searchAttendee = () => {
-        setLoading(true)
-        api.get(`/events/${eventId}/attendees?search=${attendeeId}`)
+        setLoadingSearch(true)
+        api.get(`/events/${eventId}/attendees/${attendeeId}`)
        .then((response) => {
-            const data = response.data
-            console.log(response.data)
-            if(data && data.length > 0){
-                setAttendeeData(data[0])
-                setName(data[0].name)
-                setEmail(data[0].email)
-                setCreatedAt(data[0].createdAt)
-                setCheckedInAt(data[0].checkedInAt ?? "")
-                setRegisterInfo("")
+            const data = response.data.attendees
+            if(data){
+                setAttendeeData(data)
+                setName(data.name)
+                setEmail(data.email)
+                setCreatedAt(data.createdAt)
+                setCheckedInAt(data.checkedInAt)
+                setRegisterInfo('')
+                setShowTable(true)
             }else{
                 setAttendeeData(null)
                 setName('')
@@ -42,36 +49,35 @@ export function UpdateAttendeeData(){
                 setCreatedAt('')
                 setCheckedInAt('')
                 setRegisterInfo("Attendee not found")
+                setShowTable(false)
             }
         })
         .catch((error) => {
             console.error(`Error searching attendee: ${error}`)
             setRegisterInfo("Error searching attendee")
+            setLoadingSearch(false)
         })
         .finally(() => {
-            setLoading(false)
+            setLoadingSearch(false)
         })
     }
     const updateAttendeeData = () => {
-        setLoading(true)
+        setLoadingUpdate(true)
         if (attendeeData) {
             const updatedData = {
                 name: name,
                 email: email,
-                createdAt: createdAt,
-                checkedInAt: checkedInAt,
             }
             api.put(`/events/${eventId}/attendees/${attendeeData.id}`, updatedData)
-           .then((response) => {
-                console.log(response.data)
+           .then(() => {
                 setRegisterInfo("Successfully updated")
                 setTimeout(() => {
                     setRegisterInfo('')
                     setEventId('')
+                    setAttendeeId('')
                     setName('')
                     setEmail('')
-                    setCreatedAt('')
-                    setCheckedInAt('')
+                    setShowTable(false)
                 }, 3000)
             })
             .catch((error) => {
@@ -79,12 +85,12 @@ export function UpdateAttendeeData(){
                 setRegisterInfo("Error updating attendee")
             })
             .finally(() => {
-                setLoading(false)
+                setLoadingUpdate(false)
             })
         }
         else{
             setRegisterInfo('Attendee not found')   
-            setLoading(false)     
+            setLoadingUpdate(false)     
         }
     }
 
@@ -95,6 +101,7 @@ export function UpdateAttendeeData(){
                 <h1 className="text-2xl font-bold ">Update a attendee</h1>
             </div>
             <div className="flex flex-col gap-4 items-center">
+                
                 <InputRegister 
                         id='eventId'
                         placeholder="Event id..."
@@ -108,17 +115,51 @@ export function UpdateAttendeeData(){
                         onChange={(e) => setAttendeeId(e.target.value)}
                 />
                 <button className='bg-orange-400 border border-white/10 rounded-md p-2 text-sm text-zinc-900 hover:bg-orange-500'
-                        onClick={searchAttendee}>
-                        {loading ? "Searching..." : "Search"}
+                        onClick={searchAttendee}
+                        disabled={loadingSearch || loadingUpdate}>
+                        {loadingSearch ? "Searching..." : "Search"}
                 </button>  
-                {attendeeData && (
-                <div className='flex flex-col gap-4 items-center'>
-                    <InputRegister
-                            id='email'
-                            placeholder="Email..."
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                    />
+                {showTable && attendeeData && (
+                <div>
+
+                    <Table>
+                    <thead>
+                        <tr className='border-b border-white/10'>
+                            <TableHeader>Code</TableHeader>
+                            <TableHeader>Participant</TableHeader>
+                            <TableHeader>Email</TableHeader>
+                            <TableHeader>Date of inscription</TableHeader>
+                            <TableHeader>Date of check-in</TableHeader>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <TableRow key={attendeeId}>
+                            <TableCell>
+                                {attendeeId}
+                            </TableCell>
+                            <TableCell>
+                                <span>
+                                    {name}
+                                </span>
+                            </TableCell>
+                            <TableCell>
+                                <span>
+                                    {email.toLocaleLowerCase()}
+                                </span>
+                            </TableCell>
+                            <TableCell>
+                                {dayjs().to(createdAt)}
+                            </TableCell>
+                            <TableCell>
+                                {checkedInAt === null 
+                                ? <span className="text-zinc-400">Still not checked</span>
+                                : dayjs().to(checkedInAt)}                                    
+                            </TableCell>   
+                        </TableRow>      
+                    </tbody>                       
+                    </Table>
+                <div className='flex flex-col gap-4 items-center py-4'>
+                    <div className='flex flex-row gap-4 items-center'>
                     <InputRegister
                             id='name'
                             placeholder="Name..."
@@ -126,24 +167,20 @@ export function UpdateAttendeeData(){
                             onChange={(e) => setName(e.target.value)}
                     />
                     <InputRegister
-                            id='createdAt'
-                            placeholder="Created date..."
-                            value={createdAt}
-                            onChange={(e) => setCreatedAt(e.target.value)}
+                            id='email'
+                            placeholder="Email..."
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                     />
-                    <InputRegister
-                            id='checkedInAt'
-                            placeholder="Check in..."
-                            value={checkedInAt}
-                            onChange={(e) => setCheckedInAt(e.target.value)}
-                    />
-                    <div>
+                    </div>
+                    <div className='flex flex-col gap-4 items-center'>
                     <button className='bg-orange-400 border border-white/10 rounded-md p-2 text-sm text-zinc-900 hover:bg-orange-500'
                             onClick={updateAttendeeData}
-                            disabled={loading}>
-                            {loading ? "Updating..." : "Update"}
+                            disabled={loadingSearch || loadingUpdate}>
+                            {loadingUpdate ? "Updating..." : "Update"}
                     </button>   
                     </div>           
+                </div>
                 </div>
                 )}
                 <div>
