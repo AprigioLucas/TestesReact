@@ -21,7 +21,7 @@ export function UpdateEventData(){
     const [title, setTitle] = useState('')
     const [slug, setSlug] = useState('')
     const [details, setDetails] = useState('')
-    const [maximumAttendees, setMaximumAttendees] = useState('')
+    const [maximumAttendees, setMaximumAttendees] = useState<number | null>(null)
     const [attendeesAmount, setAttendeesAmount] = useState('')
     const [eventData, setEventData] = useState<Event | null>(null)
 
@@ -51,7 +51,7 @@ export function UpdateEventData(){
                 setTitle('')
                 setSlug('')
                 setDetails('')
-                setMaximumAttendees('')
+                setMaximumAttendees(null)
                 setAttendeesAmount('')
                 setRegisterInfo("Event not found")
                 setShowTable(false)
@@ -67,15 +67,37 @@ export function UpdateEventData(){
         })
     }
     const updateEventData = () => {
+        const attendeesAmountNumber = attendeesAmount !== '' ? parseInt(attendeesAmount) : null;
         setLoadingUpdate(true)
-        if (eventData){
+        if (eventData && typeof maximumAttendees === 'number' && typeof attendeesAmountNumber === 'number' && maximumAttendees >= attendeesAmountNumber){            
             const updatedData = {
                 title: title,
-                slug: slug,
                 details: details,
                 maximumAttendees: maximumAttendees
             }
             api.put(`/events/${eventId}`, updatedData)
+            .then(() => {
+                setRegisterInfo("Successfully updated")
+                setTimeout(() => {
+                    setRegisterInfo('')
+                    setEventId('')
+                    setTitle('')
+                    setDetails('')
+                    setMaximumAttendees(null)
+                    setShowTable(false)
+                }, 3000)
+            })
+            .catch((error) => {
+                console.error(`Error updating event data: ${error}`)
+                setRegisterInfo("Error updating event")
+            })
+            .finally(() => {
+                setLoadingUpdate(false)
+            })
+        }
+        else{
+            setRegisterInfo('Error updating event data, wrong information, verify')   
+            setLoadingUpdate(false)     
         }
     }
     return(
@@ -96,7 +118,7 @@ export function UpdateEventData(){
                         disabled={loadingSearch || loadingUpdate}>
                         {loadingSearch ? "Searching..." : "Search"}
                 </button>
-                {showTable && eventData &&(
+                {showTable && eventData && eventId &&(
                 <div>
                 <Table>
                     <thead>
@@ -149,22 +171,20 @@ export function UpdateEventData(){
                                 onChange={(e) => setTitle(e.target.value)}
                         />
                         <InputRegister
-                                id='slug'
-                                placeholder="Slug..."
-                                value={slug}
-                                onChange={(e) => setSlug(e.target.value)}
-                        />
-                        <InputRegister
                                 id='details'
                                 placeholder="Details..."
                                 value={details}
                                 onChange={(e) => setDetails(e.target.value)}
                         />
-                        <InputRegister
-                                id='maximumAttendee'
-                                placeholder="Maximum Attendee..."
-                                value={maximumAttendees}
-                                onChange={(e) => setMaximumAttendees(e.target.value)}
+                       <InputRegister
+                            id='maximumAttendee'
+                            placeholder="Maximum Attendee..."
+                            value={maximumAttendees !== null ? maximumAttendees.toString() : ''}
+                            onChange={(e) => {
+                            const value = e.target.value;
+                            const parsedValue = value !== '' ? parseInt(value) : null;
+                            setMaximumAttendees(parsedValue);
+                            }}
                         />
                         </div>
                         <div className='flex flex-col gap-4 items-center'>
