@@ -11,6 +11,8 @@ import { UpdateEvent } from './update-event'
 import { UpdateAttendee } from './update-attendee'
 
 import './index.css'
+import { DelEvent } from './del-event'
+import { DelAttendee } from './del-attendee'
 
 const router = createBrowserRouter([
     {
@@ -40,6 +42,14 @@ const router = createBrowserRouter([
     {
         path: "/update-attendee",
         element: <UpdateAttendee />,
+    },
+    {
+        path: "/delete-event",
+        element: <DelEvent />,
+    },
+    {
+        path: "/delete-attendee",
+        element: <DelAttendee />,
     }
 ]
 )
