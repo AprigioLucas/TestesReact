@@ -28,8 +28,18 @@ export function UpdateEventData(){
     const [loadingUpdate, setLoadingUpdate] = useState(false)
     const [loadingSearch, setLoadingSearch] = useState(false)
     const [registerInfo, setRegisterInfo] = useState('')
-    const [showTable, setShowTable] = useState(false)
    
+    
+   const clearEventData = () => {
+    setEventId('');
+    setTitle('');
+    setSlug('');
+    setDetails('');
+    setMaximumAttendees(null);
+    setAttendeesAmount('');
+    setEventData(null);
+}
+
     const searchEvent = () =>{
         setLoadingSearch(true)
         api.get(`/events/${eventId}`)
@@ -45,16 +55,10 @@ export function UpdateEventData(){
                 setMaximumAttendees(data.maximumAttendees)
                 setAttendeesAmount(data.attendeesAmount)
                 setRegisterInfo('')
-                setShowTable(true)
            }else{
-                setEventData(null)
-                setTitle('')
-                setSlug('')
-                setDetails('')
-                setMaximumAttendees(null)
+                clearEventData()
                 setAttendeesAmount('')
                 setRegisterInfo("Event not found")
-                setShowTable(false)
            }
         })
         .catch((error) => {
@@ -80,11 +84,7 @@ export function UpdateEventData(){
                 setRegisterInfo("Successfully updated")
                 setTimeout(() => {
                     setRegisterInfo('')
-                    setEventId('')
-                    setTitle('')
-                    setDetails('')
-                    setMaximumAttendees(null)
-                    setShowTable(false)
+                    clearEventData()
                 }, 3000)
             })
             .catch((error) => {
@@ -111,14 +111,14 @@ export function UpdateEventData(){
                         id='eventId'
                         placeholder="Event id..."
                         value={eventId}
-                        onChange={(e) => setEventId(e.target.value)}
+                        onChange={(e) => {clearEventData(); setEventId(e.target.value)}}
                 />
                 <button className='bg-orange-400 border border-white/10 rounded-md p-2 text-sm text-zinc-900 hover:bg-orange-500'
                         onClick={searchEvent}
                         disabled={loadingSearch || loadingUpdate}>
                         {loadingSearch ? "Searching..." : "Search"}
                 </button>
-                {showTable && eventData && eventId &&(
+                {eventData &&(
                 <div>
                 <Table>
                     <thead>
