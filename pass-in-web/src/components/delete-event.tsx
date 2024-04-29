@@ -6,6 +6,15 @@ import { TableHeader } from "./table/table-header";
 import { TableRow } from "./table/table-row";
 import { TableCell } from "./table/table-cell";
 
+interface Event{
+    id: string
+    title: string
+    slug: string
+    details: string | null
+    maximumAttendees: number | null
+    attendeesAmount: number | null
+}
+
 export function DeleteEvent() {
   
    const [eventId, setEventId] = useState('')
@@ -68,7 +77,7 @@ export function DeleteEvent() {
             setTimeout(() => {
                 clearEventData()
                 setRegisterInfo('')
-            }, 3000)  
+            }, 2000)  
         })
         .catch((error) => {
             console.error(`Error deleting event: ${error}`)
