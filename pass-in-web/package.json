@@ -13,6 +13,8 @@
     "@types/axios": "^0.14.0",
     "@types/lodash": "^4.17.0",
     "@types/react-router-dom": "^5.3.3",
+    "@vercel/analytics": "^1.2.2",
+    "@vercel/speed-insights": "^1.0.10",
     "axios": "^1.6.8",
     "dayjs": "^1.11.10",
     "lucide-react": "^0.364.0",

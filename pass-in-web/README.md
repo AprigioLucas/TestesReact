@@ -16,3 +16,5 @@ npm i @types/react -D
 npm i @types/react-dom -D
 npm i eslint -D
 npm i autoprefixer -D
+npm i @vercel/analytics
+npm i @vercel/speed-insights
